@@ -142,7 +142,7 @@ func main() {
 	urlMap := map[string]url.URL{}
 	s := ShittyHost{}
 	for _, target := range targets {
-		fmt.Println(target.HostEntry + port, " --> ", target.Url.Host)
+		fmt.Println("http://" + target.HostEntry + port, " --> ", target.Url.Host)
 		urlMap[target.HostEntry] = target.Url
 		addHostToFile(s, target.HostEntry)
 	}
