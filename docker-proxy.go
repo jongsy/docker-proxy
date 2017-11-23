@@ -119,7 +119,7 @@ func (s ShittyHost) Add(host string)  {
 	}
 }
 
-func addHostToFile(s ShittyHost, host string) {
+func addHostToFile(s HostInterface, host string) {
 	s.Add(host)
 }
 
@@ -140,7 +140,7 @@ func main() {
 	}
 
 	urlMap := map[string]url.URL{}
-	s := ShittyHost{}
+	var s HostInterface = ShittyHost{}
 	for _, target := range targets {
 		fmt.Println("http://" + target.HostEntry + port, " --> ", target.Url.Host)
 		urlMap[target.HostEntry] = target.Url
