@@ -9,6 +9,10 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"flag"
+	"io/ioutil"
+	"strings"
+	"os"
 )
 
 func GetDockerHosts() []DockerHost {
@@ -57,9 +61,9 @@ func NewMultipleHostReverseProxy(urlMap map[string]url.URL, port string) *httput
 		re := regexp.MustCompile(`:[0-9]+`)
 		host := re.ReplaceAllString(req.Host, "")
 		target := urlMap[host]
-		fmt.Println(target)
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
+		fmt.Println(req)
 	}
 	return &httputil.ReverseProxy{Director: director}
 }
@@ -78,12 +82,53 @@ type HostInterface interface {
 }
 
 type ShittyHost struct {
-	
+
+}
+
+func (s *ShittyHost) Add(host string)  {
+	hostsPath := "/etc/hosts"
+	file, err := ioutil.ReadFile(hostsPath)
+	if err != nil {
+		//return err
+	}
+
+
+	contents := string(file)
+	rows := strings.Split(contents, "\n")
+	hostEntry := host + " 127.0.0.1 ###docker-proxy"
+	inHost := false
+	for _, row := range rows {
+		if row ==  hostEntry {
+			inHost = true
+		}
+	}
+	if inHost == false {
+		f, err := os.OpenFile(hostsPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+		if err != nil {
+			fmt.Println(err)
+			//return err
+		}
+		defer f.Close()
+
+		_, err = f.WriteString(hostEntry + "\n")
+		if err != nil {
+			fmt.Println(err)
+			//return err
+		}
+		//return nil
+	}
+}
+
+func addHostToFile(s ShittyHost, host string) {
+	s.Add(host)
 }
 
 func main() {
-	fmt.Println("init")
-	port := ":9090"
+
+	portFlag := flag.Int("port", 9090, "port. default: 9090")
+	flag.Parse()
+	port := ":" + strconv.Itoa(*portFlag)
+
 	dockerHosts := GetDockerHosts()
 	targets := []DockerContainerProxyTarget{}
 	for _, dockerHost := range dockerHosts {
@@ -93,12 +138,16 @@ func main() {
 		}
 		targets = append(targets, target)
 	}
-	//make host to url map
+
 	urlMap := map[string]url.URL{}
+	s := ShittyHost{}
 	for _, target := range targets {
-		fmt.Println(target.Url, target.HostEntry)
+		fmt.Println(target.HostEntry + port, " --> ", target.Url.Host)
 		urlMap[target.HostEntry] = target.Url
+		addHostToFile(s, target.HostEntry)
 	}
+
+
 
 	proxy := NewMultipleHostReverseProxy(urlMap, port)
 	log.Fatal(http.ListenAndServe(port, proxy))
