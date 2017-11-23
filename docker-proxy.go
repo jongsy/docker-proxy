@@ -85,7 +85,7 @@ type ShittyHost struct {
 
 }
 
-func (s *ShittyHost) Add(host string)  {
+func (s ShittyHost) Add(host string)  {
 	hostsPath := "/etc/hosts"
 	file, err := ioutil.ReadFile(hostsPath)
 	if err != nil {
@@ -95,7 +95,7 @@ func (s *ShittyHost) Add(host string)  {
 
 	contents := string(file)
 	rows := strings.Split(contents, "\n")
-	hostEntry := host + " 127.0.0.1 ###docker-proxy"
+	hostEntry :=  "127.0.0.1 " + host + " ###docker-proxy"
 	inHost := false
 	for _, row := range rows {
 		if row ==  hostEntry {
@@ -146,8 +146,6 @@ func main() {
 		urlMap[target.HostEntry] = target.Url
 		addHostToFile(s, target.HostEntry)
 	}
-
-
 
 	proxy := NewMultipleHostReverseProxy(urlMap, port)
 	log.Fatal(http.ListenAndServe(port, proxy))
