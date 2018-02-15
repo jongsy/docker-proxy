@@ -30,8 +30,11 @@ func GetDockerHosts() []DockerHost {
 
 		if len(container.Ports) > 0 && len(container.Names) > 0 {
 			for _, port := range container.Ports {
-				hosts = append(hosts, DockerHost{ContainerName: container.Names[0], ContainerPort: port.PublicPort})
+				if port.PrivatePort == 80 || port.PrivatePort == 8080 {
+					fmt.Println(port)
+					hosts = append(hosts, DockerHost{ContainerName: container.Names[0], ContainerPort: port.PublicPort})
 				}
+			}
 		}
 	}
 	return hosts
@@ -132,11 +135,12 @@ func main() {
 	dockerHosts := GetDockerHosts()
 	targets := []DockerContainerProxyTarget{}
 	for _, dockerHost := range dockerHosts {
-		target := DockerContainerProxyTarget{Url: url.URL{Scheme: "http", Host: "localhost:" + strconv.FormatInt(dockerHost.ContainerPort, 10)},
-			DockerHost: dockerHost,
-			HostEntry:  StripSpecialChars(dockerHost.ContainerName) + strconv.FormatInt(dockerHost.ContainerPort, 10),
-		}
-		targets = append(targets, target)
+			target := DockerContainerProxyTarget{Url: url.URL{Scheme: "http", Host: "localhost:" + strconv.FormatInt(dockerHost.ContainerPort, 10)},
+				DockerHost: dockerHost,
+				//HostEntry: StripSpecialChars(dockerHost.ContainerName) + strconv.FormatInt(dockerHost.ContainerPort, 10),
+				HostEntry: StripSpecialChars(dockerHost.ContainerName),
+			}
+			targets = append(targets, target)
 	}
 
 	urlMap := map[string]url.URL{}
