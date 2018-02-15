@@ -1,0 +1,15 @@
+version: '2'
+services:
+  proxy:
+    container_name: proxy
+    build: .
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/hosts:/etc/hosts
+    ports:
+      - "9090:9090"
+    extra_hosts:
+     - "localhost:${MY_IP}"
+    command: ./docker-proxy -host $MY_IP
+    environment:
+      MY_IP: "${MY_IP}"

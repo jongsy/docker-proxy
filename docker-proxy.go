@@ -129,13 +129,16 @@ func addHostToFile(s HostInterface, host string) {
 func main() {
 
 	portFlag := flag.Int("port", 9090, "port. default: 9090")
+	hostFlag := flag.String("host", "127.0.0.1", "host. default: 127.0.0.1")
+
 	flag.Parse()
 	port := ":" + strconv.Itoa(*portFlag)
+	host := *hostFlag + ":"
 
 	dockerHosts := GetDockerHosts()
 	targets := []DockerContainerProxyTarget{}
 	for _, dockerHost := range dockerHosts {
-			target := DockerContainerProxyTarget{Url: url.URL{Scheme: "http", Host: "localhost:" + strconv.FormatInt(dockerHost.ContainerPort, 10)},
+			target := DockerContainerProxyTarget{Url: url.URL{Scheme: "http", Host: host + strconv.FormatInt(dockerHost.ContainerPort, 10)},
 				DockerHost: dockerHost,
 				//HostEntry: StripSpecialChars(dockerHost.ContainerName) + strconv.FormatInt(dockerHost.ContainerPort, 10),
 				HostEntry: StripSpecialChars(dockerHost.ContainerName),
