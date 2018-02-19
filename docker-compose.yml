@@ -13,3 +13,4 @@ services:
     command: ./docker-proxy -host $MY_IP
     environment:
       MY_IP: "${MY_IP}"
+    restart: always
